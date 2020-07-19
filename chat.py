@@ -1,5 +1,9 @@
 #Coded by Yashraj Singh Chouhan
 import socket, threading
+import colored
+from colored import stylize
+import random
+
 nickname = input("Choose your nickname: ")
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      #socket initialization
@@ -18,8 +22,9 @@ def receive():
             client.close()
             break
 def write():
-    while True:                                                 #message layout
-        message = '{}: {}'.format(nickname, input(''))
+    color = ['blue', 'magenta', 'cyan', 'light_gray', 'light_red', 'white', 'navy_blue', 'blue_1', 'turquoise_4', 'purple_3', 'wheat_4', 'dark_red_2']
+    while True:                                                   #message layout
+        message = '{}: {}'.format(stylize(nickname, colored.fg(random.choice(color))), input(''))
         client.send(message.encode('ascii'))
 
 receive_thread = threading.Thread(target=receive)               #receiving multiple messages

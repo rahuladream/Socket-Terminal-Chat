@@ -1,5 +1,7 @@
 #Coded by Yashraj Singh Chouhan
-import socket, threading                                                #Libraries import
+import socket, threading    
+import colored
+from colored import stylize                                            #Libraries import
 
 host = '127.0.0.1'                                                      #LocalHost
 port = 7976                                                             #Choosing unreserved port
@@ -32,14 +34,14 @@ def handle(client):
 def receive():                                                          #accepting multiple clients
     while True:
         client, address = server.accept()
-        print("Connected with {}".format(str(address)))       
+        print(stylize("Connected with {}", colored.fg("green")).format(str(address)))       
         client.send('NICKNAME'.encode('ascii'))
         nickname = client.recv(1024).decode('ascii')
         nicknames.append(nickname)
         clients.append(client)
         print("Nickname is {}".format(nickname))
-        broadcast("{} joined!".format(nickname).encode('ascii'))
-        client.send('Connected to server!'.encode('ascii'))
+        broadcast(stylize("{} joined!", colored.fg("red")).format(nickname).encode('ascii'))
+        client.send(stylize('Connected to server!', colored.fg("green")).encode('ascii'))
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()
 
