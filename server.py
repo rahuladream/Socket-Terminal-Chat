@@ -1,31 +1,46 @@
-import socket, select
+#Coded by Yashraj Singh Chouhan
+import socket, threading                                                #Libraries import
 
-port = 5000
-socket_list = []
-users = {}
+host = '127.0.0.1'                                                      #LocalHost
+port = 7976                                                             #Choosing unreserved port
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server_socket.bind('', port)
-server_socket.listen(5)
-socket_list.append(server_socket)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)              #socket initialization
+server.bind((host, port))                                               #binding host and port to socket
+server.listen()
 
-while True:
-    read, write, error = select.select(socket_list, [], [], 0)
-    for sock in read:
-        if sock == server_socket:
-            connect, addr = server_socket.accept()
-            socket_list.append(connect)
-            connect.send('You are connected from: '+ str(addr))
-        else:
-            try:
-                data = sock.recv(2048)
-                if data.startswith("#"):
-                    users[data[1:].lower()] = connect
-                    print("user" + data[1:] + "added.")
-                    connect.send("Your user detail saved as : " + str(data[1:]))
-                elif data.startswith("@"):
-                    users[data[1:data.index(':')].lower()].send(data[data.index(':') + 1:])
-            except:
-                continue
-server_socket.close()
+clients = []
+nicknames = []
+
+def broadcast(message):                                                 #broadcast function declaration
+    for client in clients:
+        client.send(message)
+
+def handle(client):                                         
+    while True:
+        try:                                                            #recieving valid messages from client
+            message = client.recv(1024)
+            broadcast(message)
+        except:                                                         #removing clients
+            index = clients.index(client)
+            clients.remove(client)
+            client.close()
+            nickname = nicknames[index]
+            broadcast('{} left!'.format(nickname).encode('ascii'))
+            nicknames.remove(nickname)
+            break
+
+def receive():                                                          #accepting multiple clients
+    while True:
+        client, address = server.accept()
+        print("Connected with {}".format(str(address)))       
+        client.send('NICKNAME'.encode('ascii'))
+        nickname = client.recv(1024).decode('ascii')
+        nicknames.append(nickname)
+        clients.append(client)
+        print("Nickname is {}".format(nickname))
+        broadcast("{} joined!".format(nickname).encode('ascii'))
+        client.send('Connected to server!'.encode('ascii'))
+        thread = threading.Thread(target=handle, args=(client,))
+        thread.start()
+
+receive()
