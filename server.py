@@ -1,4 +1,3 @@
-#Coded by Yashraj Singh Chouhan
 import socket, threading    
 import colored
 from colored import stylize                                            #Libraries import
